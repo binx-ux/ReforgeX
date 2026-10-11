@@ -17,6 +17,8 @@ Installers are on the [Releases](https://github.com/binx-ux/ReforgeX/releases) p
 - Open a mod page with what it needs and what uses it.
 - Copy a Steam launch line for the selected mods.
 - Check for updates from the Updates button. The version is shown under the name.
+- Switch between a list and tabs for Core, Framework, and Addons.
+- Open Settings for addon folders, that view, storage cards, and update checks.
 
 ## Source
 
