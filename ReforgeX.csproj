@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets\reforgex.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>ReforgeX</AssemblyName>
+    <RootNamespace>ReforgeX</RootNamespace>
+    <Version>1.0.0</Version>
+    <Product>ReforgeX</Product>
+    <Company>ReforgeX</Company>
+    <Description>Arma Reforger mod manager</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\mark.png" />
+    <Resource Include="Assets\reforgex.ico" />
+  </ItemGroup>
+
+</Project>
