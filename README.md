@@ -6,7 +6,7 @@ ReforgeX is a Windows app for managing Arma Reforger mods. It reads the addon fo
 
 Installers are on the [Releases](https://github.com/binx-ux/ReforgeX/releases) page.
 
-`ReforgeX-Setup.exe` installs for the current Windows user and does not need administrator rights. It adds a Start menu shortcut and an Uninstall ReforgeX shortcut. You can also remove it from Apps and Features. After that first install, a newer release replaces the app on its own.
+`ReforgeX-Setup.exe` installs for the current Windows user and does not need administrator rights. It adds a Start menu shortcut and an Uninstall ReforgeX shortcut. You can also remove it from Apps and Features. After that first install, the app checks for a newer release. Use Updates to check yourself. Update downloads the installer and opens the app again.
 
 ## What you can do
 
@@ -16,6 +16,7 @@ Installers are on the [Releases](https://github.com/binx-ux/ReforgeX/releases) p
 - Share addon folders as a zip, and import a zip or a folder.
 - Open a mod page with what it needs and what uses it.
 - Copy a Steam launch line for the selected mods.
+- Check for updates from the Updates button. The version is shown under the name.
 
 ## Source
 
