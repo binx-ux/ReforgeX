@@ -273,7 +273,7 @@ static class Packer
 
     static Incoming? FromDisk(string dir)
     {
-        var mod = AddonLibrary.TryRead(dir, "", false);
+        var mod = AddonLibrary.TryRead(dir, "", false, false);
         if (mod == null)
             return null;
         var folder = SafeFolder(string.IsNullOrWhiteSpace(mod.FolderName) ? mod.Title : mod.FolderName);

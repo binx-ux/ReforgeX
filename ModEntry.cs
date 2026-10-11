@@ -41,6 +41,7 @@ sealed class ModEntry : INotifyPropertyChanged
     }
 
     public bool Locked { get; init; }
+    public bool Disabled { get; init; }
 
     bool _selected;
 
@@ -71,6 +72,8 @@ sealed class ModEntry : INotifyPropertyChanged
                 parts.Add(Version);
             if (Source.Length > 0)
                 parts.Add(Source);
+            if (Disabled)
+                parts.Add("Off");
             if (Locked)
                 parts.Add("With the game");
             return string.Join("  ·  ", parts);
@@ -104,5 +107,6 @@ sealed class ScanRoot
     public bool Locked { get; init; }
     public bool UserAdded { get; init; }
     public bool Exists { get; init; }
+    public bool HoldingDisabled { get; init; }
     public string Status => Exists ? "Found" : "Not found";
 }

@@ -57,6 +57,11 @@
 
       <DockPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,14,0,0" LastChildFill="True">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+          <Button x:Name="FilterBtn" Content="All mods" MinWidth="108" Margin="0,0,8,0" Click="FilterBtn_Click" ToolTip="Show all mods, only ones the game loads, or only ones turned off">
+            <Button.ContextMenu>
+              <ContextMenu x:Name="FilterMenu"/>
+            </Button.ContextMenu>
+          </Button>
           <Button x:Name="RefreshBtn" Content="Refresh" Width="84" Margin="0,0,8,0" Click="Refresh_Click" ToolTip="Read the addon folders again"/>
           <Button x:Name="FoldersBtn" Content="Folders" Width="84" Margin="0,0,8,0" Click="Folders_Click" ToolTip="Choose where ReforgeX looks"/>
           <Button x:Name="ImportBtn" Content="Import" Width="84" Click="Import_Click" ToolTip="Bring in a zip or an addon folder"/>
@@ -84,9 +89,12 @@
           <DataTemplate>
             <Grid Background="Transparent" MouseLeftButtonDown="Row_Down" ToolTip="{Binding FolderPath}">
               <Grid.ContextMenu>
-                <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}" Opened="RowMenu_Opened">
                   <MenuItem Header="Open folder" Click="MenuOpen_Click"/>
+                  <MenuItem Header="Workshop page" Click="MenuWorkshop_Click"/>
                   <MenuItem Header="Copy id" Click="MenuCopy_Click"/>
+                  <MenuItem Header="Copy launch line" Click="MenuLaunch_Click"/>
+                  <MenuItem Header="Turn off" Tag="power" Click="MenuPower_Click"/>
                   <MenuItem Header="Share" Click="MenuShare_Click"/>
                   <MenuItem Header="Remove" Click="MenuRemove_Click"/>
                 </ContextMenu>
@@ -111,7 +119,18 @@
                 </Grid.ColumnDefinitions>
                 <CheckBox Style="{StaticResource Tick}" IsChecked="{Binding Selected, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center" PreviewMouseLeftButtonDown="Check_Down"/>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
-                  <TextBlock Text="{Binding Title}" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="{Binding Title}" FontSize="14" TextTrimming="CharacterEllipsis">
+                    <TextBlock.Style>
+                      <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{StaticResource Text}"/>
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding Disabled}" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </TextBlock.Style>
+                  </TextBlock>
                   <TextBlock Text="{Binding Detail}" FontSize="12" Foreground="{StaticResource Muted}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
                 <TextBlock Grid.Column="2" Text="{Binding SizeText}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,18,0" Typography.NumeralAlignment="Tabular"/>
@@ -136,6 +155,9 @@
       <DockPanel Margin="16,12" LastChildFill="True">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
           <Button x:Name="CancelBtn" Content="Cancel" Width="84" Margin="0,0,8,0" Visibility="Collapsed" Click="Cancel_Click"/>
+          <Button x:Name="OnBtn" Content="On" MinWidth="56" Margin="0,0,8,0" Click="On_Click" ToolTip="Put the selected mods back in the addon folder"/>
+          <Button x:Name="OffBtn" Content="Off" MinWidth="56" Margin="0,0,8,0" Click="Off_Click" ToolTip="Move the selected mods aside so the game does not load them"/>
+          <Button x:Name="IdsBtn" Content="Ids" MinWidth="56" Margin="0,0,8,0" Click="Ids_Click" ToolTip="Copy a launch line for the selected mods"/>
           <Button x:Name="ShowBtn" Content="Show" Width="84" Margin="0,0,8,0" Click="Show_Click" ToolTip="Open the selected addon folder"/>
           <Button x:Name="ShareBtn" MinWidth="96" Margin="0,0,8,0" Style="{StaticResource AccentButton}" Click="Share_Click" ToolTip="Zip the addon files so someone else can import them">
             <StackPanel Orientation="Horizontal">

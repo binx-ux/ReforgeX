@@ -29,7 +29,7 @@ static class AddonLibrary
     {
         var list = new List<ScanRoot>();
 
-        void Add(string? path, string label, bool userAdded)
+        void Add(string? path, string label, bool userAdded, bool holdingDisabled)
         {
             if (string.IsNullOrWhiteSpace(path))
                 return;
@@ -50,32 +50,52 @@ static class AddonLibrary
                 Label = label,
                 UserAdded = userAdded,
                 Locked = IsUnderGameInstall(full),
-                Exists = Directory.Exists(full)
+                Exists = Directory.Exists(full),
+                HoldingDisabled = holdingDisabled
             });
         }
 
+        void AddLive(string? path, string label, bool userAdded)
+        {
+            Add(path, label, userAdded, false);
+            if (string.IsNullOrWhiteSpace(path))
+                return;
+            string full;
+            try
+            {
+                full = Path.GetFullPath(path);
+            }
+            catch
+            {
+                return;
+            }
+            if (IsUnderGameInstall(full) || label == "Workshop")
+                return;
+            Add(DisabledPath(full), label, userAdded, true);
+        }
+
         var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        Add(Path.Combine(docs, "My Games", "ArmaReforger", "addons"), "Documents", false);
-        Add(Path.Combine(docs, "My Games", "ArmaReforger", "profile", "addons"), "Profile", false);
-        Add(Path.Combine(docs, "My Games", "ArmaReforgerWorkbench", "addons"), "Workbench", false);
+        AddLive(Path.Combine(docs, "My Games", "ArmaReforger", "addons"), "Documents", false);
+        AddLive(Path.Combine(docs, "My Games", "ArmaReforger", "profile", "addons"), "Profile", false);
+        AddLive(Path.Combine(docs, "My Games", "ArmaReforgerWorkbench", "addons"), "Workbench", false);
 
         var experimental = Path.Combine(docs, "My Games", "ArmaReforgerExperimental", "addons");
         if (Directory.Exists(experimental))
-            Add(experimental, "Experimental", false);
+            AddLive(experimental, "Experimental", false);
         var experimentalProfile = Path.Combine(docs, "My Games", "ArmaReforgerExperimental", "profile", "addons");
         if (Directory.Exists(experimentalProfile))
-            Add(experimentalProfile, "Experimental", false);
+            AddLive(experimentalProfile, "Experimental", false);
 
         foreach (var lib in SteamLibraries())
-            Add(Path.Combine(lib, "steamapps", "workshop", "content", "1874880"), "Workshop", false);
+            Add(Path.Combine(lib, "steamapps", "workshop", "content", "1874880"), "Workshop", false, false);
 
         foreach (var dir in LaunchDirs())
-            Add(dir.Path, dir.Label, false);
+            AddLive(dir.Path, dir.Label, false);
 
         if (extra != null)
         {
             foreach (var path in extra)
-                Add(path, "Added", true);
+                AddLive(path, "Added", true);
         }
 
         return list;
@@ -119,7 +139,7 @@ static class AddonLibrary
                 if (!seen.Add(key))
                     continue;
                 progress?.Report("Reading " + Path.GetFileName(dir));
-                var mod = TryRead(dir, root.Label, root.Locked);
+                var mod = TryRead(dir, root.Label, root.Locked, root.HoldingDisabled);
                 if (mod != null)
                     found.Add(mod);
             }
@@ -146,7 +166,55 @@ static class AddonLibrary
         return false;
     }
 
-    public static ModEntry? TryRead(string dir, string source, bool locked)
+    public static string DisabledPath(string addonRoot)
+    {
+        var full = Path.GetFullPath(addonRoot);
+        var parent = Path.GetDirectoryName(full);
+        var name = Path.GetFileName(full);
+        if (string.IsNullOrEmpty(parent))
+            return full + "-disabled";
+        return Path.Combine(parent, name + "-disabled");
+    }
+
+    public static void SetEnabled(ModEntry mod, bool enabled)
+    {
+        if (mod.Locked || IsUnderGameInstall(mod.FolderPath))
+            throw new IOException("That one stays with the game.");
+        if (string.Equals(mod.Source, "Workshop", StringComparison.OrdinalIgnoreCase))
+            throw new IOException("Workshop mods stay where Steam put them.");
+        if (mod.Disabled == !enabled)
+            return;
+
+        var parent = Path.GetDirectoryName(mod.FolderPath);
+        if (string.IsNullOrEmpty(parent))
+            throw new IOException("Refusing to move that folder.");
+
+        string destParent;
+        var parentName = Path.GetFileName(parent);
+        if (parentName.EndsWith("-disabled", StringComparison.OrdinalIgnoreCase))
+        {
+            var baseName = parentName.Substring(0, parentName.Length - "-disabled".Length);
+            var above = Path.GetDirectoryName(parent);
+            if (string.IsNullOrEmpty(above) || baseName.Length == 0)
+                throw new IOException("Refusing to move that folder.");
+            destParent = Path.Combine(above, baseName);
+        }
+        else
+        {
+            destParent = DisabledPath(parent);
+        }
+
+        if (!RecycleBin.Safe(mod.FolderPath))
+            throw new IOException("Refusing to move that folder.");
+
+        Directory.CreateDirectory(destParent);
+        var dest = Path.Combine(destParent, mod.FolderName);
+        if (Directory.Exists(dest))
+            throw new IOException(mod.Title + " is already in the other folder.");
+        Directory.Move(mod.FolderPath, dest);
+    }
+
+    public static ModEntry? TryRead(string dir, string source, bool locked, bool disabled)
     {
         if (!IsModFolder(dir))
             return null;
@@ -188,7 +256,8 @@ static class AddonLibrary
             FolderName = folder,
             FolderPath = dir,
             Source = source,
-            Locked = locked || IsUnderGameInstall(dir)
+            Locked = locked || IsUnderGameInstall(dir),
+            Disabled = disabled
         };
     }
 

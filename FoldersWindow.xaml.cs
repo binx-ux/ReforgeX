@@ -22,7 +22,7 @@ public partial class FoldersWindow : Window
     void Rebuild()
     {
         Roots.ItemsSource = null;
-        Roots.ItemsSource = AddonLibrary.Discover(_extra);
+        Roots.ItemsSource = AddonLibrary.Discover(_extra).Where(r => !r.HoldingDisabled).ToList();
     }
 
     void Add_Click(object sender, RoutedEventArgs e)

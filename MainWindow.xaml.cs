@@ -28,6 +28,7 @@ public partial class MainWindow : Window
     int _scanId;
     string _query = "";
     string _status = "";
+    string _place = "";
 
     public MainWindow()
     {
@@ -35,7 +36,7 @@ public partial class MainWindow : Window
         WindowTheme.Apply(this);
         _settings = SettingsStore.Load();
         _view = CollectionViewSource.GetDefaultView(_mods);
-        _view.Filter = o => o is ModEntry mod && mod.Matches(_query);
+        _view.Filter = o => o is ModEntry mod && mod.Matches(_query) && FitsPlace(mod);
         ModList.ItemsSource = _view;
     }
 
@@ -48,6 +49,28 @@ public partial class MainWindow : Window
     {
         _work?.Cancel();
         base.OnClosing(e);
+    }
+
+    void FilterBtn_Click(object sender, RoutedEventArgs e)
+    {
+        RebuildFilter();
+        FilterMenu.PlacementTarget = FilterBtn;
+        FilterMenu.IsOpen = true;
+    }
+
+    async void On_Click(object sender, RoutedEventArgs e)
+    {
+        await SetPower(true);
+    }
+
+    async void Off_Click(object sender, RoutedEventArgs e)
+    {
+        await SetPower(false);
+    }
+
+    void Ids_Click(object sender, RoutedEventArgs e)
+    {
+        CopyLaunch(_mods.Where(m => m.Selected).ToList());
     }
 
     async void Refresh_Click(object sender, RoutedEventArgs e)
@@ -274,6 +297,54 @@ public partial class MainWindow : Window
     {
         if (MenuMod(sender) is ModEntry mod)
             OpenFolder(mod);
+    }
+
+    void RowMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        if (sender is not ContextMenu menu)
+            return;
+        var mod = menu.DataContext as ModEntry;
+        foreach (var item in menu.Items)
+        {
+            if (item is not MenuItem row || !Equals(row.Tag, "power"))
+                continue;
+            bool off = mod?.Disabled == true;
+            row.Header = off ? "Turn on" : "Turn off";
+            row.IsEnabled = mod != null && CanMove(mod);
+        }
+    }
+
+    void MenuWorkshop_Click(object sender, RoutedEventArgs e)
+    {
+        var mod = MenuMod(sender);
+        if (mod == null || mod.Guid.Length == 0)
+        {
+            _status = "No workshop id on that one.";
+            UpdateBar();
+            return;
+        }
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "https://reforger.armaplatform.com/workshop/" + mod.Guid,
+            UseShellExecute = true
+        });
+    }
+
+    void MenuLaunch_Click(object sender, RoutedEventArgs e)
+    {
+        var mod = MenuMod(sender);
+        if (mod == null)
+            return;
+        CopyLaunch(new List<ModEntry> { mod });
+    }
+
+    void MenuPower_Click(object sender, RoutedEventArgs e)
+    {
+        var mod = MenuMod(sender);
+        if (mod == null)
+            return;
+        FocusMod(mod);
+        _ = SetPower(!mod.Disabled);
     }
 
     void MenuCopy_Click(object sender, RoutedEventArgs e)
@@ -707,6 +778,10 @@ public partial class MainWindow : Window
         RemoveBtn.IsEnabled = !_busy && selected.Any(m => !m.Locked);
         ShareBtn.IsEnabled = !_busy && selected.Count > 0;
         ShowBtn.IsEnabled = !_busy && selected.Count == 1;
+        OnBtn.IsEnabled = !_busy && selected.Any(m => m.Disabled && CanMove(m));
+        OffBtn.IsEnabled = !_busy && selected.Any(m => !m.Disabled && CanMove(m));
+        IdsBtn.IsEnabled = !_busy && selected.Any(m => m.Guid.Length > 0);
+        FilterBtn.IsEnabled = !_busy;
         ImportBtn.IsEnabled = !_busy;
         RefreshBtn.IsEnabled = !_busy;
         FoldersBtn.IsEnabled = !_busy;
@@ -753,7 +828,7 @@ public partial class MainWindow : Window
 
     List<ScanRoot> WritableRoots()
     {
-        var list = _roots.Where(r => !r.Locked).ToList();
+        var list = _roots.Where(r => !r.Locked && !r.HoldingDisabled).ToList();
         if (list.Count == 0)
         {
             var path = AddonLibrary.DefaultAddonsPath();
@@ -819,6 +894,126 @@ public partial class MainWindow : Window
     static ModEntry? MenuMod(object sender)
     {
         return sender is FrameworkElement el ? el.DataContext as ModEntry : null;
+    }
+
+    bool FitsPlace(ModEntry mod)
+    {
+        if (_place.Length == 0)
+            return true;
+        if (_place == "on")
+            return !mod.Disabled;
+        if (_place == "off")
+            return mod.Disabled;
+        return string.Equals(mod.Source, _place, StringComparison.OrdinalIgnoreCase);
+    }
+
+    void RebuildFilter()
+    {
+        FilterMenu.Items.Clear();
+        FilterMenu.Items.Add(PlaceItem("All mods", ""));
+        FilterMenu.Items.Add(PlaceItem("On", "on"));
+        FilterMenu.Items.Add(PlaceItem("Off", "off"));
+        var sources = _mods.Select(m => m.Source).Where(s => s.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(s => s).ToList();
+        if (sources.Count == 0)
+            return;
+        FilterMenu.Items.Add(new Separator());
+        foreach (var source in sources)
+            FilterMenu.Items.Add(PlaceItem(source, source));
+    }
+
+    MenuItem PlaceItem(string header, string place)
+    {
+        var item = new MenuItem { Header = header, IsCheckable = true, IsChecked = string.Equals(_place, place, StringComparison.Ordinal) };
+        item.Click += (_, _) =>
+        {
+            _place = place;
+            FilterBtn.Content = header;
+            _view.Refresh();
+            UpdateBar();
+        };
+        return item;
+    }
+
+    static bool CanMove(ModEntry mod)
+    {
+        if (mod.Locked)
+            return false;
+        if (string.Equals(mod.Source, "Workshop", StringComparison.OrdinalIgnoreCase))
+            return false;
+        return RecycleBin.Safe(mod.FolderPath);
+    }
+
+    async Task SetPower(bool enabled)
+    {
+        if (_busy)
+            return;
+        var picked = _mods.Where(m => m.Selected && CanMove(m) && m.Disabled == enabled).ToList();
+        if (picked.Count == 0)
+        {
+            _status = "Select mods you can turn on or off. Workshop and game files stay put.";
+            UpdateBar();
+            return;
+        }
+
+        if (!enabled)
+        {
+            var word = picked.Count == 1 ? "mod" : "mods";
+            var names = picked.Count <= 3
+                ? string.Join(", ", picked.Select(m => m.Title))
+                : string.Join(", ", picked.Take(2).Select(m => m.Title)) + ", and " + (picked.Count - 2) + " more";
+            var dlg = new ConfirmWindow("Turn off " + picked.Count + " " + word + "?", names, "They move into a folder next to the addon folder. The game will not load them.", "Turn off", false)
+            {
+                Owner = this
+            };
+            if (dlg.ShowDialog() != true)
+                return;
+        }
+
+        _busy = true;
+        _status = enabled ? "Turning on..." : "Turning off...";
+        UpdateBar();
+        var failed = new List<string>();
+        int moved = 0;
+        await Task.Run(() =>
+        {
+            foreach (var mod in picked)
+            {
+                try
+                {
+                    AddonLibrary.SetEnabled(mod, enabled);
+                    moved++;
+                }
+                catch (Exception ex)
+                {
+                    failed.Add(mod.Title + " (" + ex.Message + ")");
+                }
+            }
+        });
+
+        if (failed.Count == 0)
+            _status = (enabled ? "Turned on " : "Turned off ") + moved + ".";
+        else
+            _status = "Could not move " + string.Join(", ", failed) + ".";
+        _busy = false;
+        var note = _status;
+        await ScanAsync();
+        _status = note;
+        UpdateBar();
+    }
+
+    void CopyLaunch(List<ModEntry> mods)
+    {
+        var ids = mods.Select(m => m.Guid).Where(g => g.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (ids.Count == 0)
+        {
+            _status = "Those mods have no id to copy.";
+            UpdateBar();
+            return;
+        }
+        var line = "-addons " + string.Join(",", ids);
+        Clipboard.SetText(line);
+        _status = "Copied " + line;
+        UpdateBar();
     }
 
     static void OpenFolder(ModEntry mod)
