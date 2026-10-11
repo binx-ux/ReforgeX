@@ -11,6 +11,8 @@ sealed class ModEntry : INotifyPropertyChanged
     public string FolderName { get; init; } = "";
     public string FolderPath { get; init; } = "";
     public string Source { get; init; } = "";
+    public string Kind { get; set; } = "Addon";
+    public List<string> Needs { get; init; } = new();
     long _bytes;
     bool _sized;
 
@@ -89,6 +91,7 @@ sealed class ModEntry : INotifyPropertyChanged
             || Contains(ProjectId, query)
             || Contains(FolderName, query)
             || Contains(Source, query)
+            || Contains(Kind, query)
             || Contains(Version, query);
     }
 

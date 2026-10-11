@@ -13,7 +13,7 @@ namespace ReforgeX;
 
 public partial class MainWindow : Window
 {
-    enum SortBy { Name, Size }
+    enum SortBy { Name, Size, Kind }
 
     readonly ObservableCollection<ModEntry> _mods = new();
     readonly ICollectionView _view;
@@ -32,6 +32,7 @@ public partial class MainWindow : Window
     string _query = "";
     string _status = "";
     string _place = "";
+    string _pageKey = "";
     bool _diskDirty;
     bool _updating;
 
@@ -198,6 +199,18 @@ public partial class MainWindow : Window
         ApplySort();
     }
 
+    void KindSort_Click(object sender, RoutedEventArgs e)
+    {
+        if (_sort == SortBy.Kind)
+            _asc = !_asc;
+        else
+        {
+            _sort = SortBy.Kind;
+            _asc = true;
+        }
+        ApplySort();
+    }
+
     void Search_Changed(object sender, TextChangedEventArgs e)
     {
         _query = SearchBox.Text.Trim();
@@ -241,8 +254,10 @@ public partial class MainWindow : Window
             return;
         if (e.ClickCount == 2)
         {
-            mod.Selected = !mod.Selected;
-            OpenFolder(mod);
+            if (!mod.Selected)
+                mod.Selected = true;
+            _anchor = Shown().IndexOf(mod);
+            OpenPage(mod);
             e.Handled = true;
             return;
         }
@@ -286,12 +301,28 @@ public partial class MainWindow : Window
         }
         if (e.Key == Key.Escape)
         {
+            if (ModPage.Visibility == Visibility.Visible)
+            {
+                ClosePage();
+                e.Handled = true;
+                return;
+            }
             _mute = true;
             foreach (var mod in _mods)
                 mod.Selected = false;
             _mute = false;
             UpdateBar();
             e.Handled = true;
+            return;
+        }
+        if (e.Key == Key.Enter && ModPage.Visibility != Visibility.Visible)
+        {
+            var picked = _mods.Where(m => m.Selected).ToList();
+            if (picked.Count == 1)
+            {
+                OpenPage(picked[0]);
+                e.Handled = true;
+            }
             return;
         }
         if (e.Key == Key.Delete)
@@ -322,6 +353,12 @@ public partial class MainWindow : Window
             else if (Directory.Exists(file))
                 await ImportFolder(file);
         }
+    }
+
+    void MenuView_Click(object sender, RoutedEventArgs e)
+    {
+        if (MenuMod(sender) is ModEntry mod)
+            OpenPage(mod);
     }
 
     void MenuOpen_Click(object sender, RoutedEventArgs e)
@@ -438,6 +475,7 @@ public partial class MainWindow : Window
             if (id != _scanId)
                 return;
             token.ThrowIfCancellationRequested();
+            ModKinds.Apply(result.found);
             _roots = result.roots;
             _disk.Set(_roots.Where(r => r.Exists).Select(r => r.Path));
             var selected = new HashSet<string>(
@@ -455,6 +493,7 @@ public partial class MainWindow : Window
             _mute = false;
             ApplySort();
             _busy = false;
+            RefreshPage();
             UpdateBar();
             var sizing = result.found;
             await Task.Run(() =>
@@ -469,6 +508,8 @@ public partial class MainWindow : Window
                             return;
                         mod.Bytes = bytes;
                         mod.Sized = true;
+                        if (_pageKey.Length > 0 && SamePage(mod))
+                            FillPage(mod);
                         UpdateBar();
                     });
                 }
@@ -787,6 +828,7 @@ public partial class MainWindow : Window
             _mods.Add(mod);
         _mute = false;
         NameSort.Content = _sort == SortBy.Name ? (_asc ? "Name  ^" : "Name  v") : "Name";
+        KindSort.Content = _sort == SortBy.Kind ? (_asc ? "Kind  ^" : "Kind  v") : "Kind";
         SizeSort.Content = _sort == SortBy.Size ? (_asc ? "Size  ^" : "Size  v") : "Size";
         _view.Refresh();
         UpdateBar();
@@ -794,9 +836,13 @@ public partial class MainWindow : Window
 
     int Compare(ModEntry a, ModEntry b)
     {
-        int c = _sort == SortBy.Size
-            ? a.Bytes.CompareTo(b.Bytes)
-            : string.Compare(a.Title, b.Title, StringComparison.CurrentCultureIgnoreCase);
+        int c;
+        if (_sort == SortBy.Size)
+            c = a.Bytes.CompareTo(b.Bytes);
+        else if (_sort == SortBy.Kind)
+            c = ModKinds.Rank(a.Kind).CompareTo(ModKinds.Rank(b.Kind));
+        else
+            c = string.Compare(a.Title, b.Title, StringComparison.CurrentCultureIgnoreCase);
         if (!_asc)
             c = -c;
         if (c != 0)
@@ -982,6 +1028,8 @@ public partial class MainWindow : Window
             return !mod.Disabled;
         if (_place == "off")
             return mod.Disabled;
+        if (_place.StartsWith("kind:", StringComparison.Ordinal))
+            return string.Equals(mod.Kind, _place.Substring(5), StringComparison.OrdinalIgnoreCase);
         return string.Equals(mod.Source, _place, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -991,6 +1039,10 @@ public partial class MainWindow : Window
         FilterMenu.Items.Add(PlaceItem("All mods", ""));
         FilterMenu.Items.Add(PlaceItem("On", "on"));
         FilterMenu.Items.Add(PlaceItem("Off", "off"));
+        FilterMenu.Items.Add(new Separator());
+        FilterMenu.Items.Add(PlaceItem("Core", "kind:" + ModKinds.Core));
+        FilterMenu.Items.Add(PlaceItem("Framework", "kind:" + ModKinds.Framework));
+        FilterMenu.Items.Add(PlaceItem("Addons", "kind:" + ModKinds.Addon));
         var sources = _mods.Select(m => m.Source).Where(s => s.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(s => s).ToList();
         if (sources.Count == 0)
             return;
@@ -1092,6 +1144,135 @@ public partial class MainWindow : Window
         Clipboard.SetText(line);
         _status = "Copied " + line;
         UpdateBar();
+    }
+
+    void OpenPage(ModEntry mod)
+    {
+        _pageKey = mod.Guid.Length > 0 ? mod.Guid : mod.FolderPath;
+        FillPage(mod);
+        ModPage.Visibility = Visibility.Visible;
+    }
+
+    void ClosePage()
+    {
+        _pageKey = "";
+        ModPage.Visibility = Visibility.Collapsed;
+    }
+
+    void RefreshPage()
+    {
+        if (_pageKey.Length == 0)
+            return;
+        var mod = _mods.FirstOrDefault(SamePage);
+        if (mod == null)
+        {
+            ClosePage();
+            return;
+        }
+        FillPage(mod);
+    }
+
+    bool SamePage(ModEntry mod)
+    {
+        if (mod.Guid.Length > 0 && string.Equals(mod.Guid, _pageKey, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return string.Equals(mod.FolderPath, _pageKey, StringComparison.OrdinalIgnoreCase);
+    }
+
+    void FillPage(ModEntry mod)
+    {
+        PageTitle.Text = mod.Title;
+        var meta = new List<string> { mod.Kind };
+        if (mod.Version.Length > 0)
+            meta.Add(mod.Version);
+        meta.Add(mod.SizeText);
+        if (mod.Source.Length > 0)
+            meta.Add(mod.Source);
+        meta.Add(mod.Disabled ? "Off" : "On");
+        if (mod.Locked)
+            meta.Add("With the game");
+        PageMeta.Text = string.Join("  ·  ", meta);
+
+        var id = mod.Guid.Length > 0 ? mod.Guid : mod.FolderName;
+        if (mod.ProjectId.Length > 0 && !string.Equals(mod.ProjectId, id, StringComparison.OrdinalIgnoreCase))
+            id += "\n" + mod.ProjectId;
+        PageId.Text = id;
+        PageFolder.Text = mod.FolderPath;
+        PageNeeds.Text = NeedText(mod);
+        PageUsed.Text = UsedText(mod);
+        PagePowerBtn.Content = mod.Disabled ? "Turn on" : "Turn off";
+        PagePowerBtn.IsEnabled = CanMove(mod);
+    }
+
+    string NeedText(ModEntry mod)
+    {
+        if (mod.Needs.Count == 0)
+            return "Just the game.";
+        var lines = new List<string>();
+        foreach (var guid in mod.Needs)
+        {
+            var hit = _mods.FirstOrDefault(m => string.Equals(m.Guid, guid, StringComparison.OrdinalIgnoreCase));
+            lines.Add(hit == null ? guid : hit.Title);
+        }
+        lines.Sort(StringComparer.CurrentCultureIgnoreCase);
+        return string.Join("\n", lines);
+    }
+
+    string UsedText(ModEntry mod)
+    {
+        if (mod.Guid.Length == 0)
+            return "Nothing else in this list.";
+        var lines = _mods
+            .Where(m => m != mod && m.Needs.Any(g => string.Equals(g, mod.Guid, StringComparison.OrdinalIgnoreCase)))
+            .Select(m => m.Title)
+            .Distinct(StringComparer.CurrentCultureIgnoreCase)
+            .OrderBy(t => t, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+        if (lines.Count == 0)
+            return "Nothing else in this list.";
+        return string.Join("\n", lines);
+    }
+
+    void PageBack_Click(object sender, RoutedEventArgs e)
+    {
+        ClosePage();
+    }
+
+    void PageFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var mod = _mods.FirstOrDefault(SamePage);
+        if (mod != null)
+            OpenFolder(mod);
+    }
+
+    void PageWorkshop_Click(object sender, RoutedEventArgs e)
+    {
+        var mod = _mods.FirstOrDefault(SamePage);
+        if (mod == null || mod.Guid.Length == 0)
+        {
+            _status = "No workshop id on that one.";
+            UpdateBar();
+            return;
+        }
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "https://reforger.armaplatform.com/workshop/" + mod.Guid,
+            UseShellExecute = true
+        });
+    }
+
+    void PagePower_Click(object sender, RoutedEventArgs e)
+    {
+        var mod = _mods.FirstOrDefault(SamePage);
+        if (mod == null)
+            return;
+        _mute = true;
+        foreach (var item in _mods)
+            item.Selected = false;
+        mod.Selected = true;
+        _mute = false;
+        UpdateBar();
+        _ = SetPower(!mod.Disabled);
     }
 
     static void OpenFolder(ModEntry mod)

@@ -12,6 +12,14 @@ static class AddonLibrary
         @"\b(ID|GUID|TITLE|Version)\s+""([^""]*)""",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+    static readonly Regex DepBlockRe = new(
+        @"Dependencies\s*\{([^}]*)\}",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
+
+    static readonly Regex HexRe = new(
+        @"""([0-9A-Fa-f]{16})""",
+        RegexOptions.Compiled);
+
     static readonly Regex JsonNameRe = new(
         @"""(?:name|title)""\s*:\s*""([^""\\]+)""",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -233,8 +241,9 @@ static class AddonLibrary
             return null;
         }
 
+        var needs = new List<string>();
         if (gproj != null)
-            ReadProject(gproj, ref id, ref guid, ref title, ref version);
+            ReadProject(gproj, ref id, ref guid, ref title, ref version, needs);
 
         if (string.Equals(guid, VanillaGuid, StringComparison.OrdinalIgnoreCase))
             return null;
@@ -255,6 +264,7 @@ static class AddonLibrary
             Version = version,
             FolderName = folder,
             FolderPath = dir,
+            Needs = needs,
             Source = source,
             Locked = locked || IsUnderGameInstall(dir),
             Disabled = disabled
@@ -289,7 +299,7 @@ static class AddonLibrary
             || path.Contains(@"\Program Files", StringComparison.OrdinalIgnoreCase);
     }
 
-    static void ReadProject(string gproj, ref string id, ref string guid, ref string title, ref string version)
+    static void ReadProject(string gproj, ref string id, ref string guid, ref string title, ref string version, List<string> needs)
     {
         string text;
         try
@@ -313,6 +323,19 @@ static class AddonLibrary
                 title = val;
             else if (key.Equals("Version", StringComparison.OrdinalIgnoreCase) && version.Length == 0)
                 version = val;
+        }
+
+        var block = DepBlockRe.Match(text);
+        if (!block.Success)
+            return;
+        foreach (Match hit in HexRe.Matches(block.Groups[1].Value))
+        {
+            var dep = hit.Groups[1].Value;
+            if (dep.Equals(VanillaGuid, StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (needs.Any(g => g.Equals(dep, StringComparison.OrdinalIgnoreCase)))
+                continue;
+            needs.Add(dep);
         }
     }
 

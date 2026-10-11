@@ -75,11 +75,13 @@
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="46"/>
           <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="120"/>
+          <ColumnDefinition Width="108"/>
+          <ColumnDefinition Width="108"/>
         </Grid.ColumnDefinitions>
         <CheckBox x:Name="SelectAllBox" Style="{StaticResource Tick}" IsThreeState="True" HorizontalAlignment="Center" VerticalAlignment="Center" PreviewMouseLeftButtonDown="SelectAll_Down" ToolTip="Select the mods in this list"/>
         <Button x:Name="NameSort" Grid.Column="1" Content="Name  ^" Style="{StaticResource SortButton}" HorizontalAlignment="Left" Click="NameSort_Click"/>
-        <Button x:Name="SizeSort" Grid.Column="2" Content="Size" Style="{StaticResource SortButton}" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="0,0,18,0" Click="SizeSort_Click"/>
+        <Button x:Name="KindSort" Grid.Column="2" Content="Kind" Style="{StaticResource SortButton}" HorizontalAlignment="Left" Click="KindSort_Click" ToolTip="Core, then framework, then addon"/>
+        <Button x:Name="SizeSort" Grid.Column="3" Content="Size" Style="{StaticResource SortButton}" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="0,0,18,0" Click="SizeSort_Click"/>
       </Grid>
     </Border>
 
@@ -90,6 +92,7 @@
             <Grid Background="Transparent" MouseLeftButtonDown="Row_Down" ToolTip="{Binding FolderPath}">
               <Grid.ContextMenu>
                 <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}" Opened="RowMenu_Opened">
+                  <MenuItem Header="View" Click="MenuView_Click"/>
                   <MenuItem Header="Open folder" Click="MenuOpen_Click"/>
                   <MenuItem Header="Workshop page" Click="MenuWorkshop_Click"/>
                   <MenuItem Header="Copy id" Click="MenuCopy_Click"/>
@@ -115,7 +118,8 @@
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="46"/>
                   <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="120"/>
+                  <ColumnDefinition Width="108"/>
+                  <ColumnDefinition Width="108"/>
                 </Grid.ColumnDefinitions>
                 <CheckBox Style="{StaticResource Tick}" IsChecked="{Binding Selected, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center" PreviewMouseLeftButtonDown="Check_Down"/>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
@@ -133,7 +137,8 @@
                   </TextBlock>
                   <TextBlock Text="{Binding Detail}" FontSize="12" Foreground="{StaticResource Muted}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
-                <TextBlock Grid.Column="2" Text="{Binding SizeText}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,18,0" Typography.NumeralAlignment="Tabular"/>
+                <TextBlock Grid.Column="2" Text="{Binding Kind}" VerticalAlignment="Center" Foreground="{StaticResource Muted}"/>
+                <TextBlock Grid.Column="3" Text="{Binding SizeText}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,18,0" Typography.NumeralAlignment="Tabular"/>
               </Grid>
             </Grid>
           </DataTemplate>
@@ -149,6 +154,31 @@
 
       <TextBlock x:Name="BusyText" Text="Reading addon folders..." Visibility="Visible" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource Muted}"/>
       <TextBlock x:Name="NoMatchText" Text="No matches" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource Muted}"/>
+    </Grid>
+
+    <Grid x:Name="ModPage" Grid.Row="1" Grid.RowSpan="2" Visibility="Collapsed" Background="{StaticResource Bg}">
+      <DockPanel Margin="28,16,28,18">
+        <Button DockPanel.Dock="Top" Content="Back" Width="84" HorizontalAlignment="Left" Margin="0,0,0,16" Click="PageBack_Click"/>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,18,0,0">
+          <Button Content="Folder" Width="84" Margin="0,0,8,0" Click="PageFolder_Click"/>
+          <Button Content="Workshop" Width="96" Margin="0,0,8,0" Click="PageWorkshop_Click"/>
+          <Button x:Name="PagePowerBtn" Content="Turn off" MinWidth="96" Click="PagePower_Click"/>
+        </StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel MaxWidth="720" HorizontalAlignment="Left">
+            <TextBlock x:Name="PageTitle" FontSize="26" FontWeight="SemiBold" TextWrapping="Wrap"/>
+            <TextBlock x:Name="PageMeta" Margin="0,8,0,0" Foreground="{StaticResource Muted}" TextWrapping="Wrap"/>
+            <TextBlock Text="Id" Margin="0,22,0,0" Foreground="{StaticResource Muted}"/>
+            <TextBlock x:Name="PageId" Margin="0,4,0,0" FontSize="14" TextWrapping="Wrap"/>
+            <TextBlock Text="Folder" Margin="0,18,0,0" Foreground="{StaticResource Muted}"/>
+            <TextBlock x:Name="PageFolder" Margin="0,4,0,0" FontSize="14" TextWrapping="Wrap"/>
+            <TextBlock Text="Needs" Margin="0,18,0,0" Foreground="{StaticResource Muted}"/>
+            <TextBlock x:Name="PageNeeds" Margin="0,4,0,0" FontSize="14" TextWrapping="Wrap"/>
+            <TextBlock Text="Used by" Margin="0,18,0,0" Foreground="{StaticResource Muted}"/>
+            <TextBlock x:Name="PageUsed" Margin="0,4,0,0" FontSize="14" TextWrapping="Wrap"/>
+          </StackPanel>
+        </ScrollViewer>
+      </DockPanel>
     </Grid>
 
     <Border Grid.Row="3" Background="#1C1E19" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
