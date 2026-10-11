@@ -6,6 +6,7 @@ sealed class SettingsStore
 {
     public List<string> ExtraRoots { get; set; } = new();
     public string ImportRoot { get; set; } = "";
+    public List<string> HiddenPromos { get; set; } = new();
 
     static readonly JsonSerializerOptions Opt = new()
     {
@@ -26,6 +27,7 @@ sealed class SettingsStore
                 return new SettingsStore();
             loaded.ExtraRoots ??= new List<string>();
             loaded.ImportRoot ??= "";
+            loaded.HiddenPromos ??= new List<string>();
             return loaded;
         }
         catch

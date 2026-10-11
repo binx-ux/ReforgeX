@@ -1,5 +1,7 @@
 # ReforgeX
 
+This is the private source repo. Releases and the public page live at [binx-ux/ReforgeX](https://github.com/binx-ux/ReforgeX).
+
 ReforgeX is a Windows app for managing Arma Reforger mods. It reads the addon folders the game already uses, shows each mod's name and size, and lets you search, remove, and hand the addon files to someone else.
 
 ## What you can do
@@ -51,4 +53,4 @@ dotnet run --project ReforgeX.csproj
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+The current source is closed. Do not publish it. Builds already released under MIT stay under that license.

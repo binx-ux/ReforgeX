@@ -24,6 +24,7 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
@@ -70,7 +71,30 @@
       </DockPanel>
     </Grid>
 
-    <Border x:Name="ColumnHead" Grid.Row="1" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,1" Visibility="Collapsed">
+    <Border x:Name="PromoRow" Grid.Row="1" Margin="22,0,22,12" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="10" Visibility="Collapsed">
+      <Grid Margin="14,12">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Border Width="36" Height="36" CornerRadius="8" Background="{StaticResource CoreWash}" Margin="0,0,12,0">
+          <Path Data="M5,15 A4,4 0 0 1 8,9 A5,5 0 0 1 16,8 A4,4 0 0 1 20,12 A3.5,3.5 0 0 1 19,17 H6 A4,4 0 0 1 5,15 Z" Fill="{StaticResource CoreInk}" Width="22" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+          <TextBlock x:Name="PromoKicker" FontSize="11" Foreground="{StaticResource Accent}"/>
+          <TextBlock x:Name="PromoTitle" FontSize="14" FontWeight="SemiBold" Margin="0,2,0,0"/>
+          <TextBlock x:Name="PromoLine" FontSize="12" Foreground="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+        </StackPanel>
+        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button x:Name="PromoGo" MinWidth="120" Style="{StaticResource AccentButton}" Click="PromoGo_Click"/>
+          <Button x:Name="PromoNext" Content="Next" Width="64" Margin="8,0,0,0" Click="PromoNext_Click"/>
+          <Button Content="Hide" Width="64" Margin="8,0,0,0" Click="PromoHide_Click" ToolTip="Hide this card"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Border x:Name="ColumnHead" Grid.Row="2" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,1" Visibility="Collapsed">
       <Grid Height="40" Margin="14,0,16,0">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="46"/>
@@ -85,7 +109,7 @@
       </Grid>
     </Border>
 
-    <Grid Grid.Row="2">
+    <Grid Grid.Row="3">
       <ListBox x:Name="ModList" Background="Transparent" BorderThickness="0" Padding="0" Foreground="{StaticResource Text}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemContainerStyle="{StaticResource ModRow}" ScrollViewer.CanContentScroll="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" SelectionMode="Single">
         <ListBox.ItemTemplate>
           <DataTemplate>
@@ -188,7 +212,7 @@
       <TextBlock x:Name="NoMatchText" Text="No matches" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource Muted}"/>
     </Grid>
 
-    <Grid x:Name="ModPage" Grid.Row="1" Grid.RowSpan="2" Visibility="Collapsed" Background="{StaticResource Bg}">
+    <Grid x:Name="ModPage" Grid.Row="2" Grid.RowSpan="2" Visibility="Collapsed" Background="{StaticResource Bg}">
       <DockPanel Margin="28,18,28,20">
         <Button DockPanel.Dock="Top" Content="Back" Width="84" HorizontalAlignment="Left" Margin="0,0,0,18" Click="PageBack_Click"/>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,20,0,0">
@@ -260,7 +284,7 @@
       </DockPanel>
     </Grid>
 
-    <Border Grid.Row="3" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
+    <Border Grid.Row="4" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
       <DockPanel Margin="22,14" LastChildFill="True">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
           <Button x:Name="CancelBtn" Content="Cancel" Width="84" Margin="0,0,8,0" Visibility="Collapsed" Click="Cancel_Click"/>

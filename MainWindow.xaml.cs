@@ -33,6 +33,7 @@ public partial class MainWindow : Window
     string _status = "";
     string _place = "";
     string _pageKey = "";
+    int _promo;
     bool _diskDirty;
     bool _updating;
 
@@ -45,6 +46,7 @@ public partial class MainWindow : Window
         _view.Filter = o => o is ModEntry mod && mod.Matches(_query) && FitsPlace(mod);
         ModList.ItemsSource = _view;
         _disk.Changed += OnDisk;
+        ShowPromo();
     }
 
     async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -1245,6 +1247,58 @@ public partial class MainWindow : Window
             .Distinct(StringComparer.CurrentCultureIgnoreCase)
             .OrderBy(t => t, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
+    }
+
+    void ShowPromo()
+    {
+        var cards = PromoCards.Visible(_settings.HiddenPromos);
+        if (cards.Count == 0)
+        {
+            PromoRow.Visibility = Visibility.Collapsed;
+            return;
+        }
+        if (_promo < 0 || _promo >= cards.Count)
+            _promo = 0;
+        var card = cards[_promo];
+        PromoKicker.Text = card.Kicker;
+        PromoTitle.Text = card.Title;
+        PromoLine.Text = card.Line;
+        PromoGo.Content = card.Button;
+        PromoGo.Tag = card.Url;
+        PromoNext.Tag = card.Id;
+        PromoNext.Visibility = cards.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+        PromoRow.Visibility = Visibility.Visible;
+    }
+
+    void PromoGo_Click(object sender, RoutedEventArgs e)
+    {
+        if (PromoGo.Tag is not string url || url.Length == 0)
+            return;
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = url,
+            UseShellExecute = true
+        });
+    }
+
+    void PromoNext_Click(object sender, RoutedEventArgs e)
+    {
+        var cards = PromoCards.Visible(_settings.HiddenPromos);
+        if (cards.Count == 0)
+            return;
+        _promo = (_promo + 1) % cards.Count;
+        ShowPromo();
+    }
+
+    void PromoHide_Click(object sender, RoutedEventArgs e)
+    {
+        if (PromoNext.Tag is string id && id.Length > 0 && !_settings.HiddenPromos.Contains(id, StringComparer.OrdinalIgnoreCase))
+        {
+            _settings.HiddenPromos.Add(id);
+            _settings.Save();
+        }
+        _promo = 0;
+        ShowPromo();
     }
 
     void PageBack_Click(object sender, RoutedEventArgs e)
