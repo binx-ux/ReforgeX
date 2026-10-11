@@ -1,5 +1,7 @@
 #define MyAppName "ReforgeX"
-#define MyAppVersion "1.1.0"
+#ifndef MyAppVersion
+#define MyAppVersion "1.2.0"
+#endif
 #define MyAppPublisher "anthony price"
 #define MyAppURL "https://github.com/binx-ux/ReforgeX"
 #define MyAppExeName "ReforgeX.exe"
@@ -26,7 +28,7 @@ SolidCompression=yes
 WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-CloseApplications=yes
+CloseApplications=force
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Shortcuts:"; Flags: unchecked
@@ -41,3 +43,10 @@ Name: "{autodesktop}\ReforgeX"; Filename: "{app}\{#MyAppExeName}"; Tasks: deskto
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Open ReforgeX"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Flags: nowait; Check: WantsRestart
+
+[Code]
+function WantsRestart: Boolean;
+begin
+  Result := ExpandConstant('{param:update|0}') = '1';
+end;

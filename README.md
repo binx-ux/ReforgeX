@@ -15,6 +15,8 @@ ReforgeX is a Windows app for managing Arma Reforger mods. It reads the addon fo
 - Share the selected addon folders as a zip, including each mod's `.gproj`.
 - Import a zip from Share, or an addon folder, into an addon directory. You can also drop a zip or folder onto the window.
 - Add another folder if your mods are not in the usual places.
+- The list refreshes on its own when an addon file changes or a mod is added.
+- An installed copy checks for a newer release and installs it.
 
 ReforgeX looks in these locations when they exist:
 
@@ -26,7 +28,7 @@ ReforgeX looks in these locations when they exist:
 
 ## Download
 
-The installer is on the [Releases](https://github.com/binx-ux/ReforgeX/releases) page. `ReforgeX-Setup.exe` installs for the current user and does not need administrator rights. It adds a Start menu shortcut and an Uninstall ReforgeX shortcut. You can also remove it from Apps & Features.
+The installer is on the [Releases](https://github.com/binx-ux/ReforgeX/releases) page. `ReforgeX-Setup.exe` installs for the current user and does not need administrator rights. It adds a Start menu shortcut and an Uninstall ReforgeX shortcut. You can also remove it from Apps & Features. After that first install, a newer release replaces the app on its own.
 
 ## Requirements
 

@@ -2,7 +2,11 @@ name: build
 
 on:
   push:
+    branches: [main]
   pull_request:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -13,3 +17,16 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - run: dotnet build ReforgeX.sln -c Release
+      - name: Publish installer
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          choco install innosetup --yes --no-progress
+          $ver = "1.2.${{ github.run_number }}"
+          dotnet publish ReforgeX.csproj -c Release -r win-x64 --self-contained true -p:PublishReadyToRun=true -p:DebugType=none -p:DebugSymbols=false -p:SatelliteResourceLanguages=en -p:Version=$ver -o publish\ReforgeX
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { throw "Inno Setup compiler was not found." }
+          & $iscc "installer\ReforgeX.iss" "/DMyAppVersion=$ver"
+          gh release create "v$ver" "dist\ReforgeX-Setup.exe" --title $ver --notes "Update $ver"

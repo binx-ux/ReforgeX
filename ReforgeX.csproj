@@ -10,7 +10,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>ReforgeX</AssemblyName>
     <RootNamespace>ReforgeX</RootNamespace>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Product>ReforgeX</Product>
     <Company>ReforgeX</Company>
     <Description>Arma Reforger mod manager</Description>

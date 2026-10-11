@@ -26,9 +26,14 @@ public partial class MainWindow : Window
     bool _mute;
     int _anchor = -1;
     int _scanId;
+    readonly DiskWatch _disk = new();
+    System.Windows.Threading.DispatcherTimer? _updateTimer;
+    CancellationTokenSource? _update;
     string _query = "";
     string _status = "";
     string _place = "";
+    bool _diskDirty;
+    bool _updating;
 
     public MainWindow()
     {
@@ -38,17 +43,43 @@ public partial class MainWindow : Window
         _view = CollectionViewSource.GetDefaultView(_mods);
         _view.Filter = o => o is ModEntry mod && mod.Matches(_query) && FitsPlace(mod);
         ModList.ItemsSource = _view;
+        _disk.Changed += OnDisk;
     }
 
     async void Window_Loaded(object sender, RoutedEventArgs e)
     {
+        _updateTimer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromMinutes(20)
+        };
+        _updateTimer.Tick += (_, _) => _ = CheckUpdate();
+        _updateTimer.Start();
         await ScanAsync();
+        await CheckUpdate();
     }
 
     protected override void OnClosing(CancelEventArgs e)
     {
         _work?.Cancel();
+        _update?.Cancel();
+        _updateTimer?.Stop();
+        _disk.Stop();
         base.OnClosing(e);
+    }
+
+    void OnDisk()
+    {
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (_updating)
+                return;
+            if (_busy)
+            {
+                _diskDirty = true;
+                return;
+            }
+            _ = ScanAsync(true);
+        }));
     }
 
     void FilterBtn_Click(object sender, RoutedEventArgs e)
@@ -372,20 +403,24 @@ public partial class MainWindow : Window
         _ = RemoveSelected();
     }
 
-    async Task ScanAsync()
+    async Task ScanAsync(bool quiet = false)
     {
         int id = ++_scanId;
+        _diskDirty = false;
         _work?.Cancel();
         _work = new CancellationTokenSource();
         var token = _work.Token;
-        _busy = true;
-        _status = "";
-        BusyText.Text = "Reading addon folders...";
-        UpdateBar();
+        if (!quiet)
+        {
+            _busy = true;
+            _status = "";
+            BusyText.Text = "Reading addon folders...";
+            UpdateBar();
+        }
 
         try
         {
-            var progress = new Progress<string>(text =>
+            var progress = quiet ? null : new Progress<string>(text =>
             {
                 if (id != _scanId)
                     return;
@@ -404,11 +439,17 @@ public partial class MainWindow : Window
                 return;
             token.ThrowIfCancellationRequested();
             _roots = result.roots;
+            _disk.Set(_roots.Where(r => r.Exists).Select(r => r.Path));
+            var selected = new HashSet<string>(
+                _mods.Where(m => m.Selected).Select(m => m.FolderPath),
+                StringComparer.OrdinalIgnoreCase);
             _mute = true;
             _mods.Clear();
             foreach (var mod in result.found)
             {
                 Watch(mod);
+                if (selected.Contains(mod.FolderPath))
+                    mod.Selected = true;
                 _mods.Add(mod);
             }
             _mute = false;
@@ -435,7 +476,7 @@ public partial class MainWindow : Window
         }
         catch (OperationCanceledException)
         {
-            if (id == _scanId)
+            if (id == _scanId && !quiet)
                 _status = "Canceled.";
         }
         catch (Exception ex)
@@ -449,7 +490,44 @@ public partial class MainWindow : Window
             {
                 _busy = false;
                 UpdateBar();
+                if (_diskDirty && !_updating)
+                {
+                    _diskDirty = false;
+                    _ = ScanAsync(true);
+                }
             }
+        }
+    }
+
+    async Task CheckUpdate()
+    {
+        if (_updating || !Updater.FromInstall())
+            return;
+        _update?.Cancel();
+        _update = new CancellationTokenSource();
+        var token = _update.Token;
+        try
+        {
+            var release = await Updater.FindNewer(token);
+            if (release == null || token.IsCancellationRequested)
+                return;
+            _updating = true;
+            Subtitle.Text = "Downloading " + release.Version.ToString(3);
+            var setup = await Updater.Download(release.Url, token);
+            if (token.IsCancellationRequested)
+                return;
+            Subtitle.Text = "Installing " + release.Version.ToString(3);
+            Updater.Apply(setup);
+            Application.Current.Shutdown();
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch
+        {
+            _updating = false;
+            if (Subtitle.Text.StartsWith("Downloading", StringComparison.Ordinal) || Subtitle.Text.StartsWith("Installing", StringComparison.Ordinal))
+                Subtitle.Text = "Arma Reforger mods";
         }
     }
 

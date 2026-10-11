@@ -42,7 +42,7 @@
         <Image Source="pack://application:,,,/Assets/mark.png" Width="32" Height="32" RenderOptions.BitmapScalingMode="HighQuality"/>
         <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
           <TextBlock Text="ReforgeX" FontSize="18" FontWeight="SemiBold"/>
-          <TextBlock Text="Arma Reforger mods" FontSize="12" Foreground="{StaticResource Muted}" Margin="0,1,0,0"/>
+          <TextBlock x:Name="Subtitle" Text="Arma Reforger mods" FontSize="12" Foreground="{StaticResource Muted}" Margin="0,1,0,0"/>
         </StackPanel>
       </StackPanel>
 
