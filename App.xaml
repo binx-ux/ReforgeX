@@ -3,32 +3,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
   <Application.Resources>
-    <SolidColorBrush x:Key="Bg" Color="#171815"/>
-    <SolidColorBrush x:Key="Text" Color="#E8E4D8"/>
-    <SolidColorBrush x:Key="Muted" Color="#9C988C"/>
-    <SolidColorBrush x:Key="Line" Color="#2C2E27"/>
-    <SolidColorBrush x:Key="Accent" Color="#E08A3C"/>
-    <SolidColorBrush x:Key="Danger" Color="#C24E38"/>
-    <SolidColorBrush x:Key="Field" Color="#20221E"/>
-    <SolidColorBrush x:Key="Border" Color="#3A3C34"/>
-    <SolidColorBrush x:Key="Hover" Color="#24271F"/>
-    <SolidColorBrush x:Key="Picked" Color="#2C291F"/>
+    <SolidColorBrush x:Key="Bg" Color="#131411"/>
+    <SolidColorBrush x:Key="Surface" Color="#1A1C18"/>
+    <SolidColorBrush x:Key="Text" Color="#F3F0E7"/>
+    <SolidColorBrush x:Key="Muted" Color="#9A968A"/>
+    <SolidColorBrush x:Key="Line" Color="#2A2C26"/>
+    <SolidColorBrush x:Key="Accent" Color="#E39445"/>
+    <SolidColorBrush x:Key="Danger" Color="#C7533C"/>
+    <SolidColorBrush x:Key="Field" Color="#1E201C"/>
+    <SolidColorBrush x:Key="Border" Color="#3C3E36"/>
+    <SolidColorBrush x:Key="Hover" Color="#22241F"/>
+    <SolidColorBrush x:Key="Picked" Color="#2C281E"/>
     <SolidColorBrush x:Key="Ink" Color="#1A140E"/>
+    <SolidColorBrush x:Key="CoreInk" Color="#F0B06A"/>
+    <SolidColorBrush x:Key="CoreWash" Color="#3A2C1E"/>
+    <SolidColorBrush x:Key="FrameInk" Color="#9EC0D4"/>
+    <SolidColorBrush x:Key="FrameWash" Color="#1C2A32"/>
 
     <Style x:Key="GhostButton" TargetType="Button">
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="Foreground" Value="{StaticResource Text}"/>
       <Setter Property="BorderBrush" Value="{StaticResource Border}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="Padding" Value="12,0"/>
-      <Setter Property="Height" Value="32"/>
+      <Setter Property="Padding" Value="14,0"/>
+      <Setter Property="Height" Value="34"/>
       <Setter Property="FontSize" Value="13"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
-            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="3" SnapsToDevicePixels="True">
+            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="7" SnapsToDevicePixels="True">
               <Grid>
                 <Border x:Name="Wash" Background="#FFFFFF" Opacity="0"/>
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True"/>
@@ -36,8 +41,8 @@
             </Border>
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True">
-                <Setter TargetName="Bd" Property="BorderBrush" Value="#6A6C60"/>
-                <Setter TargetName="Wash" Property="Opacity" Value="0.06"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="#6E7264"/>
+                <Setter TargetName="Wash" Property="Opacity" Value="0.05"/>
               </Trigger>
               <Trigger Property="IsPressed" Value="True">
                 <Setter TargetName="Wash" Property="Opacity" Value="0.12"/>
@@ -107,7 +112,7 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="CheckBox">
-            <Border x:Name="Box" Width="16" Height="16" CornerRadius="2" Background="Transparent" BorderBrush="#6E6B60" BorderThickness="1.5" VerticalAlignment="Center" HorizontalAlignment="Center" SnapsToDevicePixels="True">
+            <Border x:Name="Box" Width="16" Height="16" CornerRadius="4" Background="Transparent" BorderBrush="#6E6B60" BorderThickness="1.5" VerticalAlignment="Center" HorizontalAlignment="Center" SnapsToDevicePixels="True">
               <Grid>
                 <Viewbox x:Name="Mark" Width="10" Height="10" Visibility="Collapsed">
                   <Path Data="M1,5.2 L4,8.2 L9.2,2" Stroke="#1A140E" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
@@ -143,15 +148,15 @@
       <Setter Property="BorderBrush" Value="{StaticResource Border}"/>
       <Setter Property="CaretBrush" Value="{StaticResource Accent}"/>
       <Setter Property="SelectionBrush" Value="{StaticResource Accent}"/>
-      <Setter Property="Height" Value="32"/>
+      <Setter Property="Height" Value="36"/>
       <Setter Property="FontSize" Value="13"/>
-      <Setter Property="Padding" Value="28,0,8,0"/>
+      <Setter Property="Padding" Value="32,0,12,0"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="TextBox">
-            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="3" SnapsToDevicePixels="True">
+            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" SnapsToDevicePixels="True">
               <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
             </Border>
             <ControlTemplate.Triggers>
@@ -167,7 +172,7 @@
     <Style x:Key="ModRow" TargetType="ListBoxItem">
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
       <Setter Property="Padding" Value="0"/>
-      <Setter Property="Height" Value="54"/>
+      <Setter Property="Height" Value="62"/>
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">
@@ -191,7 +196,7 @@
 
     <Style x:Key="PlainRow" TargetType="ListBoxItem">
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-      <Setter Property="Padding" Value="8,6"/>
+      <Setter Property="Padding" Value="12,10"/>
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">
@@ -221,7 +226,7 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="ContextMenu">
-            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
               <ItemsPresenter/>
             </Border>
           </ControlTemplate>
@@ -232,16 +237,25 @@
     <Style TargetType="MenuItem">
       <Setter Property="Foreground" Value="{StaticResource Text}"/>
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Padding" Value="12,7"/>
+      <Setter Property="Padding" Value="10,8"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="MenuItem">
-            <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
-              <ContentPresenter ContentSource="Header"/>
+            <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="5">
+              <Grid>
+                <Path x:Name="Check" Data="M1,5 L4,8 L9,2" Stroke="{StaticResource Accent}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" HorizontalAlignment="Left" VerticalAlignment="Center" Width="10" Height="8" Visibility="Collapsed" Stretch="Fill"/>
+                <ContentPresenter x:Name="Head" ContentSource="Header" Margin="16,0,0,0"/>
+              </Grid>
             </Border>
             <ControlTemplate.Triggers>
               <Trigger Property="IsHighlighted" Value="True">
-                <Setter TargetName="Bd" Property="Background" Value="#32352C"/>
+                <Setter TargetName="Bd" Property="Background" Value="#2E3128"/>
+              </Trigger>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Check" Property="Visibility" Value="Visible"/>
+              </Trigger>
+              <Trigger Property="IsCheckable" Value="False">
+                <Setter TargetName="Head" Property="Margin" Value="0"/>
               </Trigger>
             </ControlTemplate.Triggers>
           </ControlTemplate>
@@ -263,7 +277,7 @@
             <Thumb Focusable="False">
               <Thumb.Template>
                 <ControlTemplate TargetType="Thumb">
-                  <Border Background="#4E5146" CornerRadius="3" Margin="2,1"/>
+                  <Border Background="#5A5E52" CornerRadius="3" Margin="2,2"/>
                 </ControlTemplate>
               </Thumb.Template>
             </Thumb>
@@ -285,7 +299,7 @@
             <Thumb Focusable="False">
               <Thumb.Template>
                 <ControlTemplate TargetType="Thumb">
-                  <Border Background="#4E5146" CornerRadius="3" Margin="1,2"/>
+                  <Border Background="#5A5E52" CornerRadius="3" Margin="2,2"/>
                 </ControlTemplate>
               </Thumb.Template>
             </Thumb>
@@ -314,12 +328,22 @@
       </Style.Triggers>
     </Style>
 
+    <Style TargetType="Separator">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Separator">
+            <Border Height="1" Background="{StaticResource Line}" Margin="6,4"/>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
     <Style TargetType="ToolTip">
       <Setter Property="Foreground" Value="{StaticResource Text}"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="ToolTip">
-            <Border Background="#24261F" BorderBrush="{StaticResource Border}" BorderThickness="1" Padding="8,6">
+            <Border Background="#24261F" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6" Padding="10,7">
               <ContentPresenter/>
             </Border>
           </ControlTemplate>

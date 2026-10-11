@@ -10,23 +10,24 @@
         ShowInTaskbar="False"
         Background="{StaticResource Bg}"
         Foreground="{StaticResource Text}"
-        FontFamily="Segoe UI"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
         FontSize="13"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True">
-  <DockPanel Margin="16">
-    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12" LastChildFill="True">
+  <DockPanel Margin="22,18,22,18">
+    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16" LastChildFill="True">
       <Button DockPanel.Dock="Right" Content="Add folder" Width="110" Margin="12,0,0,0" Style="{StaticResource AccentButton}" Click="Add_Click" VerticalAlignment="Top"/>
       <StackPanel>
-        <TextBlock Text="Addon folders" FontSize="16" FontWeight="SemiBold"/>
-        <TextBlock Text="Add the folder that contains your addon folders, not a single file inside one." Margin="0,4,0,0" Foreground="{StaticResource Muted}" TextWrapping="Wrap"/>
+        <TextBlock Text="Addon folders" FontSize="20" FontWeight="SemiBold"/>
+        <TextBlock Text="Add the folder that contains your addon folders, not a single file inside one." Margin="0,6,0,0" Foreground="{StaticResource Muted}" TextWrapping="Wrap"/>
       </StackPanel>
     </DockPanel>
     <Button DockPanel.Dock="Bottom" Content="Done" Width="96" HorizontalAlignment="Right" Margin="0,12,0,0" Click="Done_Click" Style="{StaticResource AccentButton}"/>
     <ListBox x:Name="Roots" Background="Transparent" BorderThickness="0" Foreground="{StaticResource Text}" ItemContainerStyle="{StaticResource PlainRow}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <Grid Margin="0,2">
+          <Border Margin="0,0,0,8" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="8" Padding="12,10">
+          <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="*"/>
               <ColumnDefinition Width="Auto"/>
@@ -72,6 +73,7 @@
               </Button>
             </StackPanel>
           </Grid>
+          </Border>
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>

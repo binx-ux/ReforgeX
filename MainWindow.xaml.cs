@@ -1182,7 +1182,20 @@ public partial class MainWindow : Window
     void FillPage(ModEntry mod)
     {
         PageTitle.Text = mod.Title;
-        var meta = new List<string> { mod.Kind };
+        PageKind.Text = mod.Kind;
+        if (mod.Kind == ModKinds.Core)
+        {
+            PageKind.Foreground = (System.Windows.Media.Brush)FindResource("CoreInk");
+        }
+        else if (mod.Kind == ModKinds.Framework)
+        {
+            PageKind.Foreground = (System.Windows.Media.Brush)FindResource("FrameInk");
+        }
+        else
+        {
+            PageKind.Foreground = (System.Windows.Media.Brush)FindResource("Muted");
+        }
+        var meta = new List<string>();
         if (mod.Version.Length > 0)
             meta.Add(mod.Version);
         meta.Add(mod.SizeText);
@@ -1195,19 +1208,23 @@ public partial class MainWindow : Window
 
         var id = mod.Guid.Length > 0 ? mod.Guid : mod.FolderName;
         if (mod.ProjectId.Length > 0 && !string.Equals(mod.ProjectId, id, StringComparison.OrdinalIgnoreCase))
-            id += "\n" + mod.ProjectId;
+            id += "   " + mod.ProjectId;
         PageId.Text = id;
         PageFolder.Text = mod.FolderPath;
-        PageNeeds.Text = NeedText(mod);
-        PageUsed.Text = UsedText(mod);
+        var needs = NeedLines(mod);
+        PageNeeds.ItemsSource = needs;
+        PageNeeds.Visibility = needs.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        PageNeedsEmpty.Visibility = needs.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        var used = UsedLines(mod);
+        PageUsed.ItemsSource = used;
+        PageUsed.Visibility = used.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        PageUsedEmpty.Visibility = used.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         PagePowerBtn.Content = mod.Disabled ? "Turn on" : "Turn off";
         PagePowerBtn.IsEnabled = CanMove(mod);
     }
 
-    string NeedText(ModEntry mod)
+    List<string> NeedLines(ModEntry mod)
     {
-        if (mod.Needs.Count == 0)
-            return "Just the game.";
         var lines = new List<string>();
         foreach (var guid in mod.Needs)
         {
@@ -1215,22 +1232,19 @@ public partial class MainWindow : Window
             lines.Add(hit == null ? guid : hit.Title);
         }
         lines.Sort(StringComparer.CurrentCultureIgnoreCase);
-        return string.Join("\n", lines);
+        return lines;
     }
 
-    string UsedText(ModEntry mod)
+    List<string> UsedLines(ModEntry mod)
     {
         if (mod.Guid.Length == 0)
-            return "Nothing else in this list.";
-        var lines = _mods
+            return new List<string>();
+        return _mods
             .Where(m => m != mod && m.Needs.Any(g => string.Equals(g, mod.Guid, StringComparison.OrdinalIgnoreCase)))
             .Select(m => m.Title)
             .Distinct(StringComparer.CurrentCultureIgnoreCase)
             .OrderBy(t => t, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
-        if (lines.Count == 0)
-            return "Nothing else in this list.";
-        return string.Join("\n", lines);
     }
 
     void PageBack_Click(object sender, RoutedEventArgs e)

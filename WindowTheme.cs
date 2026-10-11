@@ -18,8 +18,8 @@ static class WindowTheme
             return;
         int dark = 1;
         DwmSetWindowAttribute(hwnd, 20, ref dark, 4);
-        int caption = 0x00151817;
-        int text = 0x00D8E4E8;
+        int caption = 0x00111413;
+        int text = 0x00E7F0F3;
         DwmSetWindowAttribute(hwnd, 35, ref caption, 4);
         DwmSetWindowAttribute(hwnd, 36, ref text, 4);
     }

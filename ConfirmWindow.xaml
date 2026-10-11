@@ -9,16 +9,16 @@
         ShowInTaskbar="False"
         Background="{StaticResource Bg}"
         Foreground="{StaticResource Text}"
-        FontFamily="Segoe UI"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
         FontSize="13"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True">
-  <StackPanel Margin="20">
-    <TextBlock x:Name="Heading" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"/>
-    <TextBlock x:Name="Message" Margin="0,10,0,0" TextWrapping="Wrap"/>
-    <TextBlock x:Name="Detail" Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{StaticResource Muted}"/>
+  <StackPanel Margin="24,22,24,20">
+    <TextBlock x:Name="Heading" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
+    <TextBlock x:Name="Message" Margin="0,12,0,0" TextWrapping="Wrap" LineHeight="20"/>
+    <TextBlock x:Name="Detail" Margin="0,8,0,0" TextWrapping="Wrap" LineHeight="20" Foreground="{StaticResource Muted}"/>
     <TextBlock x:Name="ChoiceLabel" Text="Put them in" Margin="0,14,0,6" Foreground="{StaticResource Muted}" Visibility="Collapsed"/>
-    <ListBox x:Name="Choice" MaxHeight="160" Visibility="Collapsed" ItemContainerStyle="{StaticResource PlainRow}" BorderBrush="{StaticResource Border}" BorderThickness="1" Background="{StaticResource Field}">
+    <ListBox x:Name="Choice" MaxHeight="180" Visibility="Collapsed" ItemContainerStyle="{StaticResource PlainRow}" BorderBrush="{StaticResource Border}" BorderThickness="1" Background="{StaticResource Field}" Padding="4">
       <ListBox.ItemTemplate>
         <DataTemplate>
           <StackPanel>
